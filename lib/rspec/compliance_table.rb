@@ -10,6 +10,7 @@ require 'rspec/compliance_table/version'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/array/access'
 
+# rubocop:disable all
 module RSpec
   # Adds `compliance_for`
   # as a RSpec custom example
@@ -74,8 +75,6 @@ module RSpec
       actual_table = {}
 
       example do
-        must_break = false
-
         scenarios.each do |scenario|
           send(record_name).reload
           permission = described_class.new(send(scenario), send(record_name))
@@ -85,7 +84,7 @@ module RSpec
             actual_table[scenario][action] = permission.send(action)
 
             if actual_table[scenario][action] != expected_table[scenario][action]
-              must_break = true && actual_table[scenario][action] = "#{expected_table[scenario][action].to_s.upcase}*"
+              actual_table[scenario][action] = "#{expected_table[scenario][action].to_s.upcase}*"
             end
           end
         end
@@ -127,3 +126,4 @@ RSpec::Matchers.define :be_compliant do |_expected|
 end
 
 RSpec::SharedContext.include RSpec::ComplianceTable
+# rubocop:enable all
