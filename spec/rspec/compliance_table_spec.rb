@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable all
 RSpec.describe RSpec::ComplianceTable do
   class UserPermissions
     def initialize(_, _); end
@@ -28,9 +29,10 @@ RSpec.describe RSpec::ComplianceTable do
       ----------+------+--------+--------+-----------
       | create  | show | update | delete | scenario |
       ----------+------+--------+--------+-----------
-      | yes     | yes  |  yes   |  yes   | admin
-      | neg     | yes  |  neg   |  neg   | logged_in_user
-      | neg     | neg  |  neg   |  neg   | logged_out_user
+      | yay     | yay  |  yay   |  yay   | admin
+      | nay     | yay  |  nay   |  nay   | logged_in_user
+      | nay     | nay  |  nay   |  nay   | logged_out_user
     '
   end
 end
+# rubocop:enable all

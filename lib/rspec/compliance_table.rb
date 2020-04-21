@@ -14,19 +14,19 @@ module RSpec
   # Adds `compliance_for`
   # as a RSpec custom example
   module ComplianceTable
-    COMPLIANCE_TOKEN = 'yes'
+    COMPLIANCE_TOKEN = 'yay'
     SCENARIO_HEADER_TOKEN = 'scenario'
 
     class MissingAction < StandardError; end
 
-    def compliance_for(record_name, table)
+    def compliance_for(record_name, table, options = {})
       table = prepare_table(table)
 
       actions = actions(table)
       scenarios = scenarios(table)
       compliance = compliance(table)
 
-      raise_if_missing_permission(actions)
+      raise_if_missing_permission(actions, options)
 
       expected_table = {}.tap do |parsed_table|
         actions.each_with_index do |act, act_index|
@@ -37,7 +37,7 @@ module RSpec
         end
       end
 
-      run_compliance_matchers( expected_table, actions, scenarios, compliance, record_name)
+      run_compliance_matchers(expected_table, actions, scenarios, compliance, record_name)
     end
 
     private
@@ -58,9 +58,14 @@ module RSpec
       table.split("\n").reject(&:blank?)
     end
 
-    def raise_if_missing_permission(actions)
+    def raise_if_missing_permission(actions, options)
+      options[:ignore] ||= []
+
       existing_actions = described_class.instance_methods(false).map(&:to_s)
-      return if (actions.map(&:to_s) & existing_actions).length == existing_actions.length
+
+      if (actions.map(&:to_s) & existing_actions).length == (existing_actions - options[:ignore].map(&:to_s)).length
+        return
+      end
 
       raise MissingAction, "The compliance table provided doesn't have every possible action for this permission"
     end
