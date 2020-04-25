@@ -6,7 +6,7 @@ require 'rspec/compliance_table/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'rspec-compliance_table'
-  spec.version       = Rspec::ComplianceTable::VERSION
+  spec.version       = RSpec::ComplianceTable::VERSION
   spec.authors       = ['Luis Vasconcellos']
   spec.email         = ['luis@luisvasconcellos.com']
 
@@ -44,4 +44,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'bundler', '~> 1.17'
   spec.add_development_dependency 'rake', '~> 10.0'
   spec.add_development_dependency 'rspec', '~> 3.0'
+  spec.add_development_dependency 'pry'
 end

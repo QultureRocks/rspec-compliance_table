@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-
 # rubocop:disable all
 RSpec.describe RSpec::ComplianceTable do
   class UserPermissions
@@ -29,10 +28,27 @@ RSpec.describe RSpec::ComplianceTable do
       ----------+------+--------+--------+-----------
       | create  | show | update | delete | scenario |
       ----------+------+--------+--------+-----------
-      | yay     | yay  |  yay   |  yay   | admin
-      | nay     | yay  |  nay   |  nay   | logged_in_user
-      | nay     | nay  |  nay   |  nay   | logged_out_user
+      | y       | y    |  y     |  y     | admin
+      | n       | y    |  n     |  n     | logged_in_user
+      | n       | n    |  n     |  n     | logged_out_user
     '
+
+    context 'with match_actions_from whitelist configuration' do
+      UserPermissions::ACTIONS = [:create, :show]
+
+      RSpec::ComplianceTable.configure do |config|
+        config.whitelist match_actions_from: 'ACTIONS'
+      end
+
+      compliance_for :post, '
+        ----------+------+-----------
+        | create  | show | scenario |
+        ----------+------+-----------
+        | y       | y    | admin
+        | n       | y    | logged_in_user
+        | n       | n    | logged_out_user
+      '
+    end
   end
 end
 # rubocop:enable all

@@ -6,19 +6,22 @@ require 'terminal-table'
 require 'rspec/core'
 require 'rspec/expectations'
 require 'rspec/compliance_table/version'
+require 'rspec/compliance_table/configuration'
 
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/array/access'
 
 # rubocop:disable all
 module RSpec
-  # Adds `compliance_for`
-  # as a RSpec custom example
   module ComplianceTable
-    COMPLIANCE_TOKEN = 'yay'
+    COMPLIANCE_TOKEN = 'y'
     SCENARIO_HEADER_TOKEN = 'scenario'
 
     class MissingAction < StandardError; end
+
+    def self.configure
+      yield(Configuration.instance)
+    end
 
     def compliance_for(record_name, table, options = {})
       table = prepare_table(table)
@@ -27,7 +30,7 @@ module RSpec
       scenarios = scenarios(table)
       compliance = compliance(table)
 
-      raise_if_missing_permission(actions, options)
+      raise_if_missing_action(actions, options)
 
       expected_table = {}.tap do |parsed_table|
         actions.each_with_index do |act, act_index|
@@ -59,16 +62,13 @@ module RSpec
       table.split("\n").reject(&:blank?)
     end
 
-    def raise_if_missing_permission(actions, options)
+    def raise_if_missing_action(actions, options)
       options[:ignore] ||= []
 
-      existing_actions = described_class.instance_methods(false).map(&:to_s)
+      expected_actions = (Configuration.instance.actions_for(described_class).presence).map(&:to_s)
+      not_mapped_actions = (expected_actions - options[:ignore].map(&:to_s)) - (actions.map(&:to_s) & expected_actions)
 
-      if (actions.map(&:to_s) & existing_actions).length == (existing_actions - options[:ignore].map(&:to_s)).length
-        return
-      end
-
-      raise MissingAction, "The compliance table provided doesn't have every possible action for this permission"
+      raise MissingAction, "The compliance table doesn't have every possible action for the #{described_class} class. The missing actions were: #{not_mapped_actions.join(',')}" if not_mapped_actions.any?
     end
 
     def run_compliance_matchers(expected_table, actions, scenarios, _boolean_values, record_name)
