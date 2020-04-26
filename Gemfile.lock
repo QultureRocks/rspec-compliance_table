@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rspec-compliance_table (0.1.6)
+    rspec-compliance_table (0.1.7)
       activesupport (>= 4.0.0)
       pastel (~> 0.7)
       terminal-table (~> 1.8)
