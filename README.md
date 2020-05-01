@@ -1,43 +1,68 @@
 # Rspec::ComplianceTable
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/rspec/compliance_table`. To experiment with that code, run `bin/console` for an interactive prompt.
 
-TODO: Delete this and the text above, and describe your gem
+Add a table DSL to your RSpec test suite. Useful for testing complex policy/permission mechanisms.
 
-## Installation
+# Installation
 
-Add this line to your application's Gemfile:
+```
+# Gemfile
 
-```ruby
 gem 'rspec-compliance_table'
+``` 
+
+Then run `bundle install`
+
+# Usage
+
+Your policy/permission class:
+
+```
+class PostPermissions
+  def create?
+    user_active?
+  end
+
+  def update?
+    user_active? && user_is_post_owner?
+  end
+  
+  def destroy?
+    user_active? && (user_is_post_owner? || user_is_admin?)
+  end
+end
 ```
 
-And then execute:
+Your compliance table spec:
 
-    $ bundle
+```
+describe PostPermissions do
+  let(:post) { create(:post) }
+  let(:user) { create(:user) }
+  
+  let(:user_active) { user.tap { user.update!(active: true) } }
+  let(:user_is_active_aadmin) { user.tap { user.update!(active: true, admin: true) } }
+  let(:user_is_active_post_owner) { user.tap { post.update!(owner: user; user.udpate!(active: true) } }
+  
+  before do
+    sign_in(user)
+  end
+  
+  compliance_for :post, '
+     +----------+---------+----------+----------+
+     | create?  | update? | destroy? | scenario |
+     +----------+---------+----------+----------+
+     | y        | n       | n        | user_active
+     | y        | n       | y        | user_is_active_admin
+     | y        | y       | y        | user_is_active_post_owner
+   '
+end
+```
 
-Or install it yourself as:
+After running the specs, if everything passes:
 
-    $ gem install rspec-compliance_table
+![passing](https://github.com/QultureRocks/rspec-compliance_table/blob/master/assets/rc1.png?raw=true)
 
-## Usage
+And if anything for some reason is not compliant:
 
-TODO: Write usage instructions here
-
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/lfv89/rspec-compliance_table. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
-
-## License
-
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
-
-## Code of Conduct
-
-Everyone interacting in the Rspec::ComplianceTable project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/lfv89/rspec-compliance_table/blob/master/CODE_OF_CONDUCT.md).
+![breaking](https://github.com/QultureRocks/rspec-compliance_table/blob/master/assets/rc2.png?raw=true)
